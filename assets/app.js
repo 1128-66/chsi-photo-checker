@@ -391,10 +391,13 @@ function buildChecks(file, img, px, face) {
 
   /* ---------- 三、背景与画质 ---------- */
   const bgLabel = { white: '白色', blue: '蓝色', other: '其他' }[px.bgType];
-  const bgOk = px.bgType === 'white' || px.bgType === 'blue';
-  add('背景与画质', '背景底色', '白色或蓝色背景（以报考点要求为准）',
-    `${bgLabel} rgb(${px.bg.join(',')})`, bgOk ? 'pass' : 'fail',
-    bgOk ? null : '未识别到白底或蓝底。若报考点允许，请更换为纯白或纯蓝背景。');
+  const bgStatus = px.bgType === 'white' ? 'pass' : px.bgType === 'blue' ? 'warn' : 'fail';
+  add('背景与画质', '背景底色', '白色背景（2027 年起研招网统一要求白底）',
+    `${bgLabel} rgb(${px.bg.join(',')})`, bgStatus,
+    bgStatus === 'pass' ? null
+      : bgStatus === 'warn'
+        ? '检测到蓝色背景。2027 年起研招网统一要求白色背景，蓝底可能不被受理，请以报考点最新公告为准。'
+        : '未识别到白色背景。请更换为纯白色背景后重新上传。');
 
   const [bLo, bHi] = T.brightness;
   const bOk = px.brightness >= bLo && px.brightness <= bHi;
