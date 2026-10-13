@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>研招网报名照自测 · 上传即检</title>
+<meta name="description" content="上传考研网上确认证件照，本地自动检测是否符合研招网图像采集标准：宽高比、眼睛高度、人像居中、三轴角度、头肩占比、背景底色等。" />
+<link rel="stylesheet" href="./assets/style.css?v=1" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%230F1115'/><g stroke='%231AEFF3' stroke-width='5'><line x1='30' y1='8' x2='30' y2='92'/><line x1='70' y1='8' x2='70' y2='92'/><line x1='8' y1='39' x2='30' y2='39'/><line x1='70' y1='39' x2='92' y2='39'/></g></svg>" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 100 100" aria-hidden="true">
+        <rect width="100" height="100" rx="18" fill="#0F1115"/>
+        <g stroke="#1AEFF3" stroke-width="5">
+          <line x1="30" y1="8" x2="30" y2="92"/><line x1="70" y1="8" x2="70" y2="92"/>
+          <line x1="8" y1="39" x2="30" y2="39"/><line x1="70" y1="39" x2="92" y2="39"/>
+        </g>
+      </svg>
+      <div class="brand-text">
+        <h1>研招网报名照自测</h1>
+        <p>上传照片即检 · 依据《网上确认图像采集标准》</p>
+      </div>
+    </div>
+    <div class="privacy-badge" title="所有计算都在你的浏览器里完成">
+      <span class="dot"></span>纯本地检测，照片不上传
+    </div>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- ============ 左：上传 / 预览 ============ -->
+  <section class="panel stage">
+
+    <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="上传照片">
+      <input type="file" id="fileInput" accept="image/jpeg,image/jpg,.jpg,.jpeg" hidden />
+      <svg class="dz-icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+        <path d="M24 33V13m0 0-7 7m7-7 7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M8 30v5a5 5 0 0 0 5 5h22a5 5 0 0 0 5-5v-5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+      </svg>
+      <p class="dz-title">把证件照拖到这里，或点击选择</p>
+      <p class="dz-sub">支持 JPG / JPEG · 建议 480×640（宽高比 3:4）· 不超过 10 MB</p>
+      <p class="dz-note">照片只在你本机浏览器里解析，不会被上传或保存</p>
+    </div>
+
+    <div id="previewWrap" class="preview-wrap" hidden>
+      <div class="preview-canvas-box">
+        <img id="previewImg" alt="待检测照片" />
+        <canvas id="overlayCanvas"></canvas>
+      </div>
+      <div class="preview-tools">
+        <label class="switch">
+          <input type="checkbox" id="toggleGuides" checked />
+          <span>显示参考线</span>
+        </label>
+        <label class="switch">
+          <input type="checkbox" id="toggleLandmarks" checked />
+          <span>显示关键点</span>
+        </label>
+        <button class="btn-ghost" id="resetBtn" type="button">换一张</button>
+      </div>
+      <p class="filename" id="fileName"></p>
+      <ul class="legend">
+        <li><i class="lg lg-h"></i>横线：眼睛高度基准线（39%，官方允许区间 30%–50% 的中值）</li>
+        <li><i class="lg lg-v"></i>竖线：人像水平居中 / 左右对称参考（25% 与 75%）</li>
+        <li><i class="lg lg-band"></i>底纹：官方允许的眼睛高度区间 30%–50%</li>
+        <li><i class="lg lg-face"></i>虚线框与蓝线：检出面部范围与中轴</li>
+      </ul>
+    </div>
+
+    <div id="loading" class="loading" hidden>
+      <div class="spinner"></div>
+      <p id="loadingText">正在加载人脸模型…</p>
+    </div>
+
+  </section>
+
+  <!-- ============ 右：检测结果 ============ -->
+  <section class="panel report">
+
+    <div id="emptyState" class="empty-state">
+      <p>左侧上传照片后，这里会逐项列出检测结果。</p>
+      <ul class="checklist-preview">
+        <li>格式 / 大小 / 宽高比</li>
+        <li>眼睛高度是否落在 30%–50%</li>
+        <li>人像是否水平居中、左右对称</li>
+        <li>水平转动角 / 倾斜角 / 俯仰角是否在 ±10° 内</li>
+        <li>头部与肩部占比是否不小于 2/3</li>
+        <li>背景是否为白底或蓝底</li>
+        <li>亮度、过曝、清晰度</li>
+      </ul>
+    </div>
+
+    <div id="report" hidden>
+
+      <div id="verdict" class="verdict">
+        <div class="verdict-score"><span id="passCount">0</span><small>/<span id="totalCount">0</span></small></div>
+        <div class="verdict-text">
+          <strong id="verdictTitle">—</strong>
+          <span id="verdictSub">—</span>
+        </div>
+      </div>
+
+      <div id="failSummary" class="fail-summary" hidden></div>
+
+      <div id="groups"></div>
+
+      <p class="disclaimer">
+        检测项依据公开的《网上确认图像采集标准》整理，宽高比、眼睛高度（30%–50%）、水平居中、
+        三轴角度（±10°）、背景底色等为官方明文条款；头肩占比、亮度、清晰度为基于图像分析的估算值。
+        三个角度由三维人脸模型解算，存在约 ±5° 的模型误差，数值接近阈值时建议人工复核。
+        「不得化妆」「不得佩戴眼镜/美瞳」「近三个月内拍摄」「不得 PS 修图」等主观项无法自动判定，仍需自行核对。
+        最终审核结果以报考点为准。
+      </p>
+    </div>
+
+  </section>
+
+</main>
+
+<footer class="footer">
+  <span>照片全程在本地浏览器解析，无任何上传</span>
+  <span class="sep">·</span>
+  <span>检测项依据《网上确认图像采集标准》</span>
+</footer>
+
+<script type="module" src="./assets/app.js?v=1"></script>
+</body>
+</html>
