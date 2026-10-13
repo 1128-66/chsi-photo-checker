@@ -4,6 +4,26 @@
 
 **照片不会上传到任何服务器**，全部解析和推理都在你的浏览器里完成。
 
+## 立即使用
+
+### 👉 https://1128-66.github.io/chsi-photo-checker/
+
+打开网页，把证件照拖进去即可，无需注册、无需安装。
+
+> 首次打开需要加载约 3.3 MB 的推理运行时和 3.3 MB 的人脸模型（已随仓库本地化，不依赖任何境外 CDN），
+> 网络较慢时可能要等十几秒到一分钟，之后会被浏览器缓存，再次打开就很快了。
+
+也可以把仓库克隆到本地跑：
+
+```bash
+git clone https://github.com/1128-66/chsi-photo-checker.git
+cd chsi-photo-checker
+python3 -m http.server 8899
+# 浏览器打开 http://127.0.0.1:8899
+```
+
+（由于使用 WebAssembly，必须通过 HTTP 访问，不能直接双击打开 `index.html`。）
+
 ## 检测项
 
 ### 文件与规格
@@ -66,15 +86,6 @@
 - 不得用照片翻拍
 
 最终审核结果以报考点为准。
-
-## 本地运行
-
-由于使用 WebAssembly，需要通过 HTTP 访问，不能直接双击打开 `index.html`：
-
-```bash
-python3 -m http.server 8899
-# 浏览器打开 http://127.0.0.1:8899
-```
 
 ## 目录结构
 
